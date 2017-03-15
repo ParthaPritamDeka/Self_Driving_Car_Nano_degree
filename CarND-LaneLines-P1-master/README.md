@@ -3,100 +3,69 @@
 
 <img src="laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
 
-Overview
----
+Reflection
+1. Pipeline description:
+Answer: My pipeline consisted of 4 steps. 
+1)	Gray scaling and Gaussian blurring: First I converted the images to gray scale and Gaussian smoothing:
+We need to convert the image to grayscale for further edge detection, we then apply Gaussian smoothing function to the image. The Gaussian smoothing will average out the anomalous gradient in the image before applying canny edge detection:
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+Gray sample plot below:
+ 
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+            After performing Gaussian smoothing:
+ 
 
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
+2)	Canny edges: Now, I am performing canny edge detection with a lower threshold of 100 and an upper threshold of 200. The output edges are a binary image with white pixels tracing out the detected edges and black everywhere else. 
 
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
-
-
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
-1. Describe the pipeline
-2. Identify any shortcomings
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+Canny edge detection below:
+ 
 
 
-The Project
----
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you can install the starter kit or follow the install instructions below to get started on this project. ##
+3)	Canny Edges: At the 3rd step I am keeping the polygon on interest for the edges detected. Please refer below the code snippet for finding the vertices provided and to call the function provided to build the region of interest:
+ 
+Please not the height, width of a picture and how I am guessing the four co-ordinates of the edges of the polygon. Please refer below the masked image with region of interest:
+ 
+4)	Hough Transform:
+In Hough space, we can represent "x vs. y" line as a point in "m vs. b" instead. The Hough Transform is just the conversion from image space to Hough space. So, the characterization of a line in image space will be a single point at the position (m, b) in Hough space. After detecting the edges we want to identify the lines which form the two lane lines and as explained in the lesson we are using Hough transform for this. We are operating on the image edges (the output from Canny) and the output from HoughLinesP will be lines, which will simply be an array containing the endpoints (x1, y1, x2, y2) of all line segments detected by the transform operation. The other parameters define just what kind of line segments we're looking for.
 
-**Step 1:** Getting setup with Python
+Here are the parameter values I chose:
 
-To do this project, you will need Python 3 along with the numpy, matplotlib, and OpenCV libraries, as well as Jupyter Notebook installed. 
+rho = 2 # distance resolution in pixels of the Hough grid
+theta = np.pi/180 # angular resolution in radians of the Hough grid
+threshold = 45    # minimum number of votes (intersections in Hough grid cell)
+min_line_length = 20 #minimum number of pixels making up a line
+max_line_gap = 20    # maximum gap in pixels between connectable line segments
 
-We recommend downloading and installing the Anaconda Python 3 distribution from Continuum Analytics because it comes prepackaged with many of the Python dependencies you will need for this and future projects, makes it easy to install OpenCV, and includes Jupyter Notebook.  Beyond that, it is one of the most common Python distributions used in data analytics and machine learning, so a great choice if you're getting started in the field.
+***Please note I chose the values of these parameters randomly every time looking at the results and changing the values in turn to get the best the lanes detected in the image
 
-Choose the appropriate Python 3 Anaconda install package for your operating system <A HREF="https://www.continuum.io/downloads" target="_blank">here</A>.   Download and install the package.
+Extrapolating the detected lines: What we need to do here is, once the lines are detected we need to extrapolate both the lines such that it cover the image mostly and we detect the lanes completely. Please refer the steps below:
 
-If you already have Anaconda for Python 2 installed, you can create a separate environment for Python 3 and all the appropriate dependencies with the following command:
+a)	First, I grouped the lines in two groups left lane and right lane, the slope of all the left lines (part of the left lane) would be positive and the slope of all the right lines (part of the right lane) would be negative, so pretty straightforward to group them
+b)	The maximum Y co-ordinate for all points would the height of the image but need to calculate the minimum y co-ordinate both for left and right lane but iterating through line and keeping the minimum y. 
+c)	Second, to draw extrapolated lines for left and right lane, I need the co-ordinates of the top and bottom points (X and Y both, I know Y, as explained in b)) for both left and right lanes.  For that, I need calculate the average slope, average y coordinate values, average x co-ordinate values for all left and right lines. Using these average slopes, y and x values, I calculated the average intercept for both left and right lines. 
+Now, I have average Slope, average intercept and Y values for both top and bottom tips of the left and right lanes, now it’s pretty straightforward to calculate the X-ordinates for both top and both tips for both left and right lanes.
+d)	Now, I have the X and Y co-ordinates for the top and bottom tips for left and right. I can now draw the extrapolated line.
 
-`>  conda create --name=yourNewEnvironment python=3 anaconda`
 
-`>  source activate yourNewEnvironment`
 
-**Step 2:** Installing OpenCV
+Please refer the code for extrapolating:
+ 
 
-Once you have Anaconda installed, first double check you are in your Python 3 environment:
 
-`>python`    
-`Python 3.5.2 |Anaconda 4.1.1 (x86_64)| (default, Jul  2 2016, 17:52:12)`  
-`[GCC 4.2.1 Compatible Apple LLVM 4.2 (clang-425.0.28)] on darwin`  
-`Type "help", "copyright", "credits" or "license" for more information.`  
-`>>>`   
-(Ctrl-d to exit Python)
 
-run the following commands at the terminal prompt to get OpenCV:
 
-`> pip install pillow`  
-`> conda install -c menpo opencv3=3.1.0`
 
-then to test if OpenCV is installed correctly:
 
-`> python`  
-`>>> import cv2`  
-`>>>`  (i.e. did not get an ImportError)
 
-(Ctrl-d to exit Python)
 
-**Step 3:** Installing moviepy  
+2. Shortcoming and Improvements:
+I am able to extrapolate in both the videos:  solidWhiteRight.mp4 & solidYellowLeft.mp4
+** But I am not convinced with my result with solidYellowLeft.mp4. If you could observe my result video “yellow.mp4”, although I am able to extrapolate completely, but at certain sub second instances I am losing the track of the lanes. I feel there is something to do in detecting the Yellow solid lines as my “white.mp4” is behaving perfectly as expected. 
+I would feel there is a way to improve my implementation for the second video- solidYellowLeft.mp4. I am not so sure how to do this but precisely in detecting solid “Yellow” lines my implementation could be improved. I could not build a pretty deep of gray scaling as I would feel it’s something to do with gray scaling. Overall, I am able to extrapolate the lines to detect left and right lanes but I was hoping I could do a better job in the yellow video as well the bonus challenges. I am looking forward to advices and help to improve my implementation for these two case.
 
-We recommend the "moviepy" package for processing video in this project (though you're welcome to use other packages if you prefer).  
 
-To install moviepy run:
 
-`>pip install moviepy`  
 
-and check that the install worked:
 
-`>python`  
-`>>>import moviepy`  
-`>>>`  (i.e. did not get an ImportError)
-
-(Ctrl-d to exit Python)
-
-**Step 4:** Opening the code in a Jupyter Notebook
-
-You will complete this project in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out <A HREF="https://www.packtpub.com/books/content/basics-jupyter-notebook-and-python" target="_blank">Cyrille Rossant's Basics of Jupyter Notebook and Python</A> to get started.
-
-Jupyter is an ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, run the following command at the terminal prompt (be sure you're in your Python 3 environment!):
-
-`> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
-
-**Step 5:** Complete the project and submit both the Ipython notebook and the project writeup
 
