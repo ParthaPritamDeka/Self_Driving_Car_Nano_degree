@@ -3,24 +3,14 @@
 
 <img src="laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
 
-Reflection
+Reflection (Please refer the Report.pdf document)
 1. Pipeline description:
 Answer: My pipeline consisted of 4 steps. 
 1)	Gray scaling and Gaussian blurring: First I converted the images to gray scale and Gaussian smoothing:
 We need to convert the image to grayscale for further edge detection, we then apply Gaussian smoothing function to the image. The Gaussian smoothing will average out the anomalous gradient in the image before applying canny edge detection:
 
-Gray sample plot below:
- 
-
-            After performing Gaussian smoothing:
- 
 
 2)	Canny edges: Now, I am performing canny edge detection with a lower threshold of 100 and an upper threshold of 200. The output edges are a binary image with white pixels tracing out the detected edges and black everywhere else. 
-
-Canny edge detection below:
- 
-
-
 
 3)	Canny Edges: At the 3rd step I am keeping the polygon on interest for the edges detected. Please refer below the code snippet for finding the vertices provided and to call the function provided to build the region of interest:
  
@@ -46,18 +36,6 @@ b)	The maximum Y co-ordinate for all points would the height of the image but ne
 c)	Second, to draw extrapolated lines for left and right lane, I need the co-ordinates of the top and bottom points (X and Y both, I know Y, as explained in b)) for both left and right lanes.  For that, I need calculate the average slope, average y coordinate values, average x co-ordinate values for all left and right lines. Using these average slopes, y and x values, I calculated the average intercept for both left and right lines. 
 Now, I have average Slope, average intercept and Y values for both top and bottom tips of the left and right lanes, now it’s pretty straightforward to calculate the X-ordinates for both top and both tips for both left and right lanes.
 d)	Now, I have the X and Y co-ordinates for the top and bottom tips for left and right. I can now draw the extrapolated line.
-
-
-
-Please refer the code for extrapolating:
- 
-
-
-
-
-
-
-
 
 2. Shortcoming and Improvements:
 I am able to extrapolate in both the videos:  solidWhiteRight.mp4 & solidYellowLeft.mp4
