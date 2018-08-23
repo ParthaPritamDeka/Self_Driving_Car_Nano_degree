@@ -5,7 +5,7 @@
 
 Reflection (Please refer the Report.pdf document)
 1. Pipeline description:
-Answer: My pipeline consisted of 4 steps. 
+My pipeline consisted of 4 steps. 
 1)	Gray scaling and Gaussian blurring: First I converted the images to gray scale and Gaussian smoothing:
 We need to convert the image to grayscale for further edge detection, we then apply Gaussian smoothing function to the image. The Gaussian smoothing will average out the anomalous gradient in the image before applying canny edge detection:
 
