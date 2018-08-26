@@ -20,3 +20,7 @@ Test Accuracy = 0.9016627078479184
 F1 Score = 0.7763211212494087 
 Recall score = 0.7756927949326999
 
+
+<img src="ConfusionMatrix1.png" width="480" alt="Combined Image" />
+
+<img src="ConfusionMatrix2.png" width="480" alt="Combined Image" />
